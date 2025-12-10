@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  password  String?
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tabs       Tab[]
+  appointments Appointment[]
+}
+
+model Tab {
+  id        String   @id @default(cuid())
+  clientId  String?
+  status    TabStatus @default(OPEN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client     Client?   @relation(fields: [clientId], references: [id])
+  items      TabItem[]
+  payments   Payment[]
+}
+
+model TabItem {
+  id        String   @id @default(cuid())
+  tabId     String
+  productId String?
+  name      String
+  price     Float
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+
+  tab      Tab      @relation(fields: [tabId], references: [id], onDelete: Cascade)
+  product  Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+}
+
+model Product {
+  id        String   @id @default(cuid())
+  name      String
+  category  String   @default("comida")
+  price     Float
+  promo_price Float?
+  is_promo  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  tabItems  TabItem[]
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  tabId     String
+  amount    Float
+  method    PaymentMethod
+  createdAt DateTime @default(now())
+
+  tab Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+}
+
+model Appointment {
+  id        String   @id @default(cuid())
+  clientId  String?
+  date      DateTime
+  note      String?
+  createdAt DateTime @default(now())
+
+  client Client? @relation(fields: [clientId], references: [id])
+}
+
+enum TabStatus {
+  OPEN
+  CLOSED
+  CANCELED
+}
+
+enum PaymentMethod {
+  PIX
+  CREDIT
+  DEBIT
+  CASH
+}
+

@@ -1,0 +1,106 @@
+{
+  "clientName": "BG Lagunas - Auth Tests",
+  "dateExported": "2025-12-07",
+  "version": "1.1",
+  "folders": [
+    {
+      "name": "Autenticação",
+      "_id": "auth-folder",
+      "requests": ["1", "2", "3", "4"]
+    },
+    {
+      "name": "Rotas Protegidas",
+      "_id": "protected-folder",
+      "requests": ["5", "6"]
+    }
+  ],
+  "requests": [
+    {
+      "_id": "1",
+      "name": "✓ Cadastro",
+      "method": "POST",
+      "url": "/api/auth/register",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "raw": {
+          "name": "João Silva",
+          "email": "joao@example.com",
+          "password": "senha123",
+          "phone": "11999999999"
+        }
+      },
+      "tests": "Usuario registrado com sucesso",
+      "description": "Testa se o cadastro funciona e cria um novo usuário"
+    },
+    {
+      "_id": "2",
+      "name": "✓ Login - Retorna Token e Cookie",
+      "method": "POST",
+      "url": "/api/auth/login",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "raw": {
+          "email": "joao@example.com",
+          "password": "senha123"
+        }
+      },
+      "tests": "Token deve estar presente na resposta e cookie deve ser salvo",
+      "description": "Testa se o login retorna um token JWT e salva cookie com o token"
+    },
+    {
+      "_id": "3",
+      "name": "✓ Acesso Protegido SEM Token (Deve Bloquear)",
+      "method": "GET",
+      "url": "/api/protegido",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "tests": "Deve retornar erro 401 ou 403",
+      "description": "Testa se o middleware bloqueia requisições sem token"
+    },
+    {
+      "_id": "4",
+      "name": "✓ Refresh Token - Gera Novo Token",
+      "method": "POST",
+      "url": "/api/auth/refresh",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "raw": {
+          "refreshToken": "Cole_O_REFRESH_TOKEN_AQUI"
+        }
+      },
+      "tests": "Deve retornar novo token de acesso",
+      "description": "Testa se o refresh token gera um novo token de acesso"
+    },
+    {
+      "_id": "5",
+      "name": "✓ Acesso Protegido COM Cookie Válido",
+      "method": "GET",
+      "url": "/api/protegido",
+      "headers": {
+        "Content-Type": "application/json",
+        "Cookie": "COLE_O_COOKIE_DO_LOGIN_AQUI"
+      },
+      "tests": "Deve retornar dados com sucesso 200",
+      "description": "Testa se rotas protegidas funcionam com cookie válido"
+    },
+    {
+      "_id": "6",
+      "name": "✓ Acesso Protegido COM Token no Header",
+      "method": "GET",
+      "url": "/api/protegido",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer COLE_O_TOKEN_AQUI"
+      },
+      "tests": "Deve retornar dados com sucesso 200",
+      "description": "Testa se o middleware aceita token via Authorization header"
+    }
+  ]
+}

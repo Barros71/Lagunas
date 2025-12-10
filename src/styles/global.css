@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+/* custom */
+:root{
+  --bg-dark: #0a0a0a;
+  --bg-card: #151515;
+  --border-color: #2a2a2a;
+  --neon-cyan: #00d4ff;
+  --neon-orange: #ff6b35;
+  --neon-yellow: #ffd700;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+}
+
+.neon-text-cyan { text-shadow: 0 0 10px rgba(0,212,255,0.5); }
+.neon-text-orange { text-shadow: 0 0 10px rgba(255,107,53,0.5); }
