@@ -1,6 +1,17 @@
 import { format, formatDistance, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+// Format local date string (YYYY-MM-DD) without timezone conversion
+export function formatLocalDate(dateStr: string, formatStr: string = 'dd/MM/yyyy'): string {
+  try {
+    const [year, month, day] = dateStr.split('-');
+    const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return format(dateObj, formatStr, { locale: ptBR });
+  } catch {
+    return '';
+  }
+}
+
 export function formatDate(date: string | Date, formatStr: string = 'dd/MM/yyyy'): string {
   try {
     const dateObj = typeof date === 'string' ? parseISO(date) : date;

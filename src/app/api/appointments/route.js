@@ -25,7 +25,7 @@ export async function GET(request) {
       orderBy: { date: 'asc' },
     });
 
-    // Map note JSON
+    // Map note JSON (defensive: avoid throwing on null dates)
     const mapped = appointments.map((a) => {
       let extras = {};
       try {
@@ -33,12 +33,17 @@ export async function GET(request) {
       } catch {
         extras = {};
       }
+
+      const iso = a.date ? a.date.toISOString() : null;
+      const dateOnly = iso ? iso.split('T')[0] : null;
+      const timeOnly = iso ? iso.split('T')[1].slice(0, 5) : extras.time || null;
+
       return {
         id: a.id,
         client_name: a.client?.name || extras.client_name || null,
         client_phone: a.client?.phone || extras.client_phone || null,
-        date: a.date.toISOString().split('T')[0],
-        time: extras.time || a.date.toISOString().split('T')[1].slice(0,5),
+        date: dateOnly,
+        time: extras.time || timeOnly,
         duration: extras.duration || 60,
         tattoo_description: extras.tattoo_description || extras.note || '',
         tattoo_size: extras.tattoo_size || 'media',
@@ -52,8 +57,11 @@ export async function GET(request) {
 
     return NextResponse.json({ success: true, data: mapped });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ success: false, error: 'Internal error' }, { status: 500 });
+    console.error('Error in GET /api/appointments:', err);
+    const message = (err && err.message) ? err.message : 'Internal error';
+    // In development include message to help debugging
+    const payload = { success: false, error: process.env.NODE_ENV === 'development' ? message : 'Internal error' };
+    return NextResponse.json(payload, { status: 500 });
   }
 }
 

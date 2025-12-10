@@ -75,10 +75,16 @@ export async function DELETE(request, { params }) {
    try {
       const resolvedParams = params && typeof params.then === 'function' ? await params : params;
       const id = (resolvedParams && resolvedParams.id) || new URL(request.url).pathname.split('/').pop();
+    const existing = await prisma.appointment.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 });
+    }
     await prisma.appointment.delete({ where: { id } });
     return NextResponse.json({ success: true, message: 'Deleted' });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ success: false, error: 'Internal error' }, { status: 500 });
+    console.error('Error in DELETE /api/appointments/:id', err);
+    const message = (err && err.message) ? err.message : 'Internal error';
+    const payload = { success: false, error: process.env.NODE_ENV === 'development' ? message : 'Internal error' };
+    return NextResponse.json(payload, { status: 500 });
   }
 }
