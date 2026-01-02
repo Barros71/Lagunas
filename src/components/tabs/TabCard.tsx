@@ -40,7 +40,7 @@ export default function TabCard({
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
-            <p className="font-semibold text-white text-lg">{tab.client_name}</p>
+            <p className="font-semibold text-white text-lg break-words">{tab.client_name}</p>
             {tab.table_number && (
               <p className="text-sm text-[#a0a0a0]">Mesa {tab.table_number}</p>
             )}

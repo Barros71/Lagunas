@@ -27,14 +27,43 @@ export async function GET(request) {
     const open_tabs_count = await prisma.tab.count({ where: { status: 'OPEN' } });
 
     const upcoming_appointments_raw = await prisma.appointment.findMany({ where: { date: { gte: now } }, include: { client: true }, orderBy: { date: 'asc' }, take: 5 });
-    const upcoming_appointments = upcoming_appointments_raw.map(a => ({ id: a.id, client_name: a.client?.name || null, client_phone: a.client?.phone || null, date: a.date.toISOString().split('T')[0], time: a.date.toISOString().split('T')[1].slice(0,5) }));
+    const upcoming_appointments = upcoming_appointments_raw.map(a => {
+      const iso = a.date ? a.date.toISOString() : null;
+      return {
+        id: a.id,
+        client_name: a.client?.name || null,
+        client_phone: a.client?.phone || null,
+        date: iso ? iso.split('T')[0] : null,
+        time: iso ? iso.split('T')[1].slice(0,5) : null
+      };
+    });
 
     const open_tabs_raw = await prisma.tab.findMany({ where: { status: 'OPEN' }, include: { items: true, client: true } });
-    const open_tabs = open_tabs_raw.map(t => ({ id: t.id, client_name: t.client?.name || null, items: t.items, total_amount: t.items.reduce((s,i)=>s + i.price*i.quantity, 0), status: t.status }));
+    const open_tabs = open_tabs_raw.map(t => ({
+      id: t.id,
+      client_name: t.client?.name || null,
+      items: t.items,
+      total_amount: (t.items || []).reduce((s,i) => s + (i.price || 0) * (i.quantity || 0), 0),
+      status: t.status
+    }));
 
     return NextResponse.json({ success: true, data: { total_appointments_today, total_appointments_week, total_revenue_month, open_tabs_count, upcoming_appointments, open_tabs } });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ success: false, error: 'Internal error' }, { status: 500 });
+    console.error('Error in GET /api/dashboard/stats:', err);
+    const msg = (err && err.message) ? err.message : 'Internal error';
+    // Return default data on database connection failure
+    const defaultData = {
+      total_appointments_today: 0,
+      total_appointments_week: 0,
+      total_revenue_month: 0,
+      open_tabs_count: 0,
+      upcoming_appointments: [],
+      open_tabs: []
+    };
+    if (msg.includes('database') || msg.includes('connection') || msg.includes('Closed')) {
+      return NextResponse.json({ success: true, data: defaultData, warning: 'Database unavailable, showing default data' });
+    }
+    const payload = { success: false, error: process.env.NODE_ENV === 'development' ? msg : 'Internal error' };
+    return NextResponse.json(payload, { status: 500 });
   }
 }

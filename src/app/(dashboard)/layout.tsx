@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Calendar, UtensilsCrossed, Menu, X, Home, Settings } from "lucide-react";
+import { Calendar, UtensilsCrossed, Menu, X, Home, Settings, ChefHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
 
@@ -14,6 +14,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Dashboard", icon: Home, href: "/dashboard" },
     { name: "Agenda", icon: Calendar, href: "/agenda" },
     { name: "Comandas", icon: UtensilsCrossed, href: "/comandas" },
+    { name: "Cozinha", icon: ChefHat, href: "/cozinha" },
     { name: "Cardápio", icon: Settings, href: "/cardapio" },
   ];
 
@@ -86,8 +87,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       )}
 
       {/* Main Content */}
-      <main className="lg:ml-64 lg:pl-6 pt-20 lg:pt-0 min-h-screen">
-        {children}
+      <main className="lg:ml-64 lg:pl-6 pt-20 lg:pt-0 min-h-screen p-4 lg:p-6">
+        <div className="max-w-full overflow-x-hidden">
+          {children}
+        </div>
       </main>
     </div>
   );

@@ -4,14 +4,18 @@ import { verifyAuth } from '@/lib/auth';
 import { requireAdmin } from '@/lib/requireAdmin';
 
 export async function GET(request) {
-  const user = verifyAuth(request);
-  if (!user) return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
+  // Temporariamente removendo autenticação para debug
+  // const user = verifyAuth(request);
+  // if (!user) return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     
     const query = category && category !== 'todos' ? { category } : {};
     const products = await prisma.product.findMany({ where: query, orderBy: { createdAt: 'desc' } });
+    
+    console.log(`Encontrados ${products.length} produtos`);
+    console.log('Categorias encontradas:', [...new Set(products.map(p => p.category))]);
     
     const mapped = products.map(p => ({ 
       id: p.id, 

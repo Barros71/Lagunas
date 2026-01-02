@@ -108,7 +108,7 @@ export default function MenuItemModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#151515] border-[#2a2a2a]">
+      <DialogContent className="bg-[#151515] border-[#2a2a2a] w-[95vw] max-w-2xl mx-4">
         <DialogHeader>
           <DialogTitle className="text-white">
             {editingItem ? 'Editar Item' : 'Novo Item de Menu'}

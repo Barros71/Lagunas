@@ -120,4 +120,5 @@ export const NAV_ITEMS = [
   { name: "Agenda", href: "/agenda" },
   { name: "Comandas", href: "/comandas" },
   { name: "Cardápio", href: "/cardapio" },
+  { name: "Cozinha", href: "/cozinha" },
 ] as const;

@@ -50,7 +50,7 @@ export default function AddMenuToTabModal({ isOpen, onClose, tabId }: Props) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#151515] border-[#2a2a2a] max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogContent className="bg-[#151515] border-[#2a2a2a] max-w-4xl w-[95vw] max-h-[90vh] flex flex-col mx-4">
         <DialogHeader>
           <DialogTitle className="text-white">Adicionar Itens à Comanda</DialogTitle>
           <DialogDescription className="text-[#a0a0a0]">Selecione itens do cardápio para adicionar</DialogDescription>
@@ -143,8 +143,9 @@ export default function AddMenuToTabModal({ isOpen, onClose, tabId }: Props) {
                         <Input
                           type="number"
                           min={1}
-                          value={quantities[p.id] || 1}
-                          onChange={(e) => setQuantities((s) => ({ ...s, [p.id]: Number(e.target.value) }))}
+                          value={quantities[p.id] || ''}
+                          onChange={(e) => setQuantities((s) => ({ ...s, [p.id]: e.target.value ? Number(e.target.value) : 0 }))}
+                          placeholder="1"
                           className="w-16 bg-[#0a0a0a] border-[#2a2a2a] text-white h-8 text-center"
                         />
                         <Button

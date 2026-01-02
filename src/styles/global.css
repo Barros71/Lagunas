@@ -14,3 +14,42 @@
 
 .neon-text-cyan { text-shadow: 0 0 10px rgba(0,212,255,0.5); }
 .neon-text-orange { text-shadow: 0 0 10px rgba(255,107,53,0.5); }
+
+/* Prevenir overflow horizontal */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#root, #__next {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Garantir que modais não causem overflow */
+[data-radix-dialog-overlay] {
+  overflow-x: hidden;
+}
+
+[data-radix-dialog-content] {
+  max-width: 95vw !important;
+  margin: 0 auto;
+}
+
+/* Prevenir que tabelas quebrem o layout */
+table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+/* Quebrar palavras longas */
+.break-words {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}

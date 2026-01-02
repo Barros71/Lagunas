@@ -30,6 +30,7 @@ model Tab {
   client     Client?   @relation(fields: [clientId], references: [id])
   items      TabItem[]
   payments   Payment[]
+  kitchenOrders KitchenOrder[]
 }
 
 model TabItem {
@@ -77,6 +78,18 @@ model Appointment {
   client Client? @relation(fields: [clientId], references: [id])
 }
 
+model KitchenOrder {
+  id        String   @id @default(cuid())
+  tabId     String
+  itemName  String
+  clientName String
+  status    KitchenOrderStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tab Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+}
+
 enum TabStatus {
   OPEN
   CLOSED
@@ -88,5 +101,11 @@ enum PaymentMethod {
   CREDIT
   DEBIT
   CASH
+}
+
+enum KitchenOrderStatus {
+  PENDING
+  READY
+  DELIVERED
 }
 

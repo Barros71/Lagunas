@@ -21,10 +21,24 @@ export async function POST(request, { params }) {
         tabId: id,
         productId: product_id || null,
         name: prod ? prod.name : (name || 'Item'),
-        price: prod ? prod.price : (unit_price || 0),
+        price: prod ? (prod.is_promo && prod.promo_price ? prod.promo_price : prod.price) : (unit_price || 0),
         quantity: quantity,
       },
     });
+
+    // Check if product category requires kitchen order
+    if (prod && ['petiscos', 'cervejas', 'drinks', 'bebidas'].includes(prod.category)) {
+      const tab = await prisma.tab.findUnique({ where: { id }, include: { client: true } });
+      const clientName = tab?.client?.name || 'Cliente';
+
+      await prisma.kitchenOrder.create({
+        data: {
+          tabId: id,
+          itemName: prod.name,
+          clientName: clientName,
+        },
+      });
+    }
 
     // return updated tab mapped to frontend shape
     const tab = await prisma.tab.findUnique({ where: { id }, include: { items: true, client: true, payments: true } });

@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { useTabs, useUpdateTabStatus, usePayTab, useDeleteTab } from '@/hooks/useApi';
+import { useIsFetching } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TabCard from '@/components/tabs/TabCard';
 import { TabDetailModal, NewTabModal, PaymentModal } from '@/components/tabs/TabModals';
-import { Plus, AlertCircle, Trash2 } from 'lucide-react';
+import { Plus, AlertCircle, Trash2, RefreshCw } from 'lucide-react';
 
 type TabStatus = 'aberta' | 'fechada' | 'paga';
 
@@ -22,6 +23,7 @@ export default function ComandasPage() {
   const updateStatus = useUpdateTabStatus();
   const payTab = usePayTab();
   const deleteTab = useDeleteTab();
+  const isFetching = useIsFetching({ queryKey: ["tabs"] });
 
   const abertas = allTabs?.filter(t => t.status === 'aberta') || [];
   const fechadas = allTabs?.filter(t => t.status === 'fechada') || [];
@@ -33,10 +35,10 @@ export default function ComandasPage() {
     await updateStatus.mutateAsync({ id, status: 'fechada' });
   };
 
-  const handlePayTab = async (paymentMethod: string) => {
+  const handlePayTab = async (paymentData: string[] | Array<{method: string, amount: number}>) => {
     if (selectedTabId) {
       try {
-        const updated = await payTab.mutateAsync({ id: selectedTabId, payment_method: paymentMethod });
+        const updated = await payTab.mutateAsync({ id: selectedTabId, payment_methods: paymentData });
         // after successful payment, switch to 'pagas' and show the paid tab details
         setShowPaymentModal(false);
         setActiveTab('pagas');
@@ -84,12 +86,22 @@ export default function ComandasPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Comandas</h1>
-          <p className="text-[#a0a0a0] mt-2">Gerencie as aberturas de consumo</p>
+          <h1 className="text-3xl font-bold text-white flex items-center gap-2">
+            Comandas
+            {isFetching > 0 && (
+              <RefreshCw className="h-5 w-5 animate-spin text-[#00d4ff]" />
+            )}
+          </h1>
+          <p className="text-[#a0a0a0] mt-2 flex items-center gap-2">
+            Gerencie as aberturas de consumo
+            <span className="text-xs bg-[#00d4ff]/20 text-[#00d4ff] px-2 py-1 rounded">
+              Atualização automática a cada 10s
+            </span>
+          </p>
         </div>
         <Button
           onClick={() => setShowNewTabModal(true)}

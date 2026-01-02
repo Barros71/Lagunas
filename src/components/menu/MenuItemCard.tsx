@@ -29,7 +29,7 @@ export default function MenuItemCard({
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
-            <p className="font-semibold text-white text-lg">{item.name}</p>
+            <p className="font-semibold text-white text-lg break-words">{item.name}</p>
             <Badge className={`${categoryColor} border text-xs mt-1`}>
               {MENU_CATEGORY_LABELS[item.category]}
             </Badge>

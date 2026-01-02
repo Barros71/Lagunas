@@ -41,7 +41,7 @@ interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   totalAmount: number;
-  onPay: (method: string) => Promise<void>;
+  onPay: (paymentData: string[] | Array<{method: string, amount: number}>) => Promise<void>;
 }
 
 export function TabDetailModal({ isOpen, onClose, tab }: TabDetailModalProps) {
@@ -60,8 +60,8 @@ export function TabDetailModal({ isOpen, onClose, tab }: TabDetailModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#151515] border-[#2a2a2a]">
-        <DialogHeader>
+      <DialogContent className="bg-[#151515] border-[#2a2a2a] w-[95vw] max-w-2xl mx-4 max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-white">Detalhes da Comanda</DialogTitle>
           <DialogDescription className="text-[#a0a0a0]">
             {tab.client_name}
@@ -69,17 +69,17 @@ export function TabDetailModal({ isOpen, onClose, tab }: TabDetailModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex-1 overflow-y-auto space-y-4 pr-1">
           {/* Items List */}
           <div className="space-y-2">
             <h3 className="font-semibold text-white">Itens</h3>
             {tab.items && tab.items.length > 0 ? (
-              <div className="space-y-2 max-h-64 overflow-y-auto">
+              <div className="space-y-2 max-h-48 overflow-y-auto border border-[#2a2a2a] rounded-md p-2">
                 {tab.items.map((item) => (
                   <Card key={item.id} className="p-3 border-[#2a2a2a] bg-[#0a0a0a]">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-white text-sm">{item.name}</p>
+                        <p className="text-white text-sm break-words">{item.name}</p>
                         <p className="text-[#a0a0a0] text-xs">
                           {item.quantity}x {formatCurrency(item.price)}
                         </p>
@@ -88,11 +88,11 @@ export function TabDetailModal({ isOpen, onClose, tab }: TabDetailModalProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteItem(item.id)}
-                        className="h-8 w-8 p-0 hover:bg-red-500/20 text-red-400 ml-2"
+                        className="h-8 w-8 p-0 hover:bg-red-500/20 text-red-400 ml-2 flex-shrink-0"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
-                      <p className="text-white font-semibold ml-2">{formatCurrency(item.quantity * item.price)}</p>
+                      <p className="text-white font-semibold ml-2 flex-shrink-0">{formatCurrency(item.quantity * item.price)}</p>
                     </div>
                   </Card>
                 ))}
@@ -102,46 +102,48 @@ export function TabDetailModal({ isOpen, onClose, tab }: TabDetailModalProps) {
             )}
           </div>
 
-          {/* Total + Actions */}
-          <Card className="p-4 border-[#2a2a2a] bg-[#0a0a0a] space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[#a0a0a0]">Total:</span>
-              <span className="text-white font-bold text-xl">{formatCurrency(tab.total_amount)}</span>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Button onClick={onClose} className="w-full bg-[#00d4ff] hover:bg-[#00d4ff]/80 text-black">
-                Fechar
-              </Button>
-              <Button onClick={() => setShowAddMenuModal(true)} className="w-full bg-[#ff6b35] hover:bg-[#ff6b35]/80 text-white">
-                Adicionar Item
-              </Button>
-            </div>
-          </Card>
           {/* Payments */}
           {tab.payments && tab.payments.length > 0 && (
             <div className="space-y-2">
               <h3 className="font-semibold text-white">Pagamentos</h3>
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-32 overflow-y-auto border border-[#2a2a2a] rounded-md p-2">
                 {tab.payments.map((p: any) => (
                   <Card key={p.createdAt} className="p-3 border-[#2a2a2a] bg-[#0a0a0a]">
                     <div className="flex items-center justify-between">
-                      <div>
+                      <div className="flex-1">
                         <p className="text-white text-sm">{p.method_pt ? p.method_pt.charAt(0).toUpperCase() + p.method_pt.slice(1) : p.method}</p>
                         <p className="text-[#a0a0a0] text-xs">{new Date(p.createdAt).toLocaleString()}</p>
                       </div>
-                      <p className="text-white font-semibold ml-2">{formatCurrency(p.amount)}</p>
+                      <p className="text-white font-semibold ml-2 flex-shrink-0">{formatCurrency(p.amount)}</p>
                     </div>
                   </Card>
                 ))}
               </div>
             </div>
           )}
-          {showAddMenuModal && (
-            <AddMenuToTabModal isOpen={showAddMenuModal} onClose={() => setShowAddMenuModal(false)} tabId={tab.id} />
-          )}
         </div>
+
+        {/* Total + Actions - Always visible at bottom */}
+        <Card className="flex-shrink-0 p-4 border-[#2a2a2a] bg-[#0a0a0a] space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[#a0a0a0]">Total:</span>
+            <span className="text-white font-bold text-xl">{formatCurrency(tab.total_amount)}</span>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Button onClick={onClose} className="w-full bg-[#00d4ff] hover:bg-[#00d4ff]/80 text-black">
+              Fechar
+            </Button>
+            <Button onClick={() => setShowAddMenuModal(true)} className="w-full bg-[#ff6b35] hover:bg-[#ff6b35]/80 text-white">
+              Adicionar Item
+            </Button>
+          </div>
+        </Card>
       </DialogContent>
+
+      {showAddMenuModal && (
+        <AddMenuToTabModal isOpen={showAddMenuModal} onClose={() => setShowAddMenuModal(false)} tabId={tab.id} />
+      )}
     </Dialog>
   );
 }
@@ -176,7 +178,7 @@ export function NewTabModal({ isOpen, onClose }: NewTabModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#151515] border-[#2a2a2a]">
+      <DialogContent className="bg-[#151515] border-[#2a2a2a] w-[95vw] max-w-md mx-4">
         <DialogHeader>
           <DialogTitle className="text-white">Nova Comanda</DialogTitle>
           <DialogDescription className="text-[#a0a0a0]">Criar uma nova comanda</DialogDescription>
@@ -235,23 +237,69 @@ export function PaymentModal({
   totalAmount,
   onPay,
 }: PaymentModalProps) {
-  const [selectedMethod, setSelectedMethod] = useState<string>('');
+  const [selectedMethods, setSelectedMethods] = useState<string[]>([]);
+  const [paymentAmounts, setPaymentAmounts] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePay = async () => {
-    if (!selectedMethod) return;
+    if (selectedMethods.length === 0) return;
     setIsLoading(true);
     try {
-      await onPay(selectedMethod);
+      if (selectedMethods.length === 1) {
+        // Single payment method - use total amount
+        await onPay(selectedMethods);
+      } else {
+        // Multiple payment methods - use specified amounts
+        const payments = selectedMethods.map(method => ({
+          method,
+          amount: paymentAmounts[method] || 0
+        }));
+        await onPay(payments);
+      }
       onClose();
     } finally {
       setIsLoading(false);
     }
   };
 
+  const toggleMethod = (method: string) => {
+    setSelectedMethods(prev => {
+      const newMethods = prev.includes(method)
+        ? prev.filter(m => m !== method)
+        : [...prev, method];
+      
+      // Initialize amount for new method
+      if (!prev.includes(method)) {
+        setPaymentAmounts(prevAmounts => ({
+          ...prevAmounts,
+          [method]: 0
+        }));
+      } else {
+        // Remove amount when method is deselected
+        setPaymentAmounts(prevAmounts => {
+          const newAmounts = { ...prevAmounts };
+          delete newAmounts[method];
+          return newAmounts;
+        });
+      }
+      
+      return newMethods;
+    });
+  };
+
+  const updateAmount = (method: string, amount: number) => {
+    setPaymentAmounts(prev => ({
+      ...prev,
+      [method]: amount
+    }));
+  };
+
+  const totalPaid = Object.values(paymentAmounts).reduce((sum, amount) => sum + amount, 0);
+  const remaining = totalAmount - totalPaid;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#151515] border-[#2a2a2a]">
+      <DialogContent className="bg-[#151515] border-[#2a2a2a] w-[95vw] max-w-md mx-4">
         <DialogHeader>
           <DialogTitle className="text-white">Registrar Pagamento</DialogTitle>
           <DialogDescription className="text-[#a0a0a0]">
@@ -259,22 +307,54 @@ export function PaymentModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto flex-1 pr-1">
           <div className="space-y-2">
-            <Label className="text-white">Método de Pagamento</Label>
-            <Select value={selectedMethod} onValueChange={setSelectedMethod}>
-              <SelectTrigger className="bg-[#0a0a0a] border-[#2a2a2a] text-white">
-                <SelectValue placeholder="Selecione..." />
-              </SelectTrigger>
-              <SelectContent className="bg-[#151515] border-[#2a2a2a]">
-                {Object.entries(PAYMENT_METHOD_LABELS).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>
+            <Label className="text-white">Métodos de Pagamento</Label>
+            <div className="space-y-2">
+              {Object.entries(PAYMENT_METHOD_LABELS).map(([key, label]) => (
+                <div key={key} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id={key}
+                    checked={selectedMethods.includes(key)}
+                    onChange={() => toggleMethod(key)}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor={key} className="text-white cursor-pointer flex-1">
                     {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  </Label>
+                  {selectedMethods.length > 1 && selectedMethods.includes(key) && (
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={paymentAmounts[key] || ''}
+                      onChange={(e) => updateAmount(key, Number(e.target.value) || 0)}
+                      placeholder="0.00"
+                      className="w-20 bg-[#0a0a0a] border-[#2a2a2a] text-white h-8 text-center"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
+
+          {selectedMethods.length > 1 && (
+            <Card className="p-4 border-[#2a2a2a] bg-[#0a0a0a] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[#a0a0a0]">Total pago:</span>
+                <span className={`font-bold ${totalPaid === totalAmount ? 'text-green-400' : totalPaid > totalAmount ? 'text-red-400' : 'text-yellow-400'}`}>
+                  {formatCurrency(totalPaid)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#a0a0a0]">Restante:</span>
+                <span className={`font-bold ${remaining === 0 ? 'text-green-400' : remaining < 0 ? 'text-red-400' : 'text-yellow-400'}`}>
+                  {formatCurrency(remaining)}
+                </span>
+              </div>
+            </Card>
+          )}
 
           <Card className="p-4 border-[#2a2a2a] bg-[#0a0a0a]">
             <div className="flex items-center justify-between">
@@ -294,7 +374,11 @@ export function PaymentModal({
             </Button>
             <Button
               onClick={handlePay}
-              disabled={!selectedMethod || isLoading}
+              disabled={
+                selectedMethods.length === 0 || 
+                isLoading || 
+                (selectedMethods.length > 1 && totalPaid !== totalAmount)
+              }
               className="flex-1 bg-[#ffd700] hover:bg-[#ffd700]/80 text-black"
             >
               {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}

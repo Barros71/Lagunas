@@ -74,12 +74,20 @@ export const useUpdateAppointment = () => {
   return useMutation({
     mutationFn: async (data: UpdateAppointmentRequest) => {
       const { id, ...updateData } = data;
+      console.log('Enviando atualização para API:', id, updateData);
       const response = await apiClient.put<{ data: Appointment }>(`/appointments/${id}`, updateData);
+      console.log('Resposta da API:', response.data);
       return response.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Atualização bem-sucedida, invalidando queries...');
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      // Forçar refetch das queries
+      queryClient.refetchQueries({ queryKey: ["appointments"] });
+    },
+    onError: (error) => {
+      console.error('Erro na atualização:', error);
     },
   });
 };
@@ -159,6 +167,9 @@ export const useTabs = (status?: string) => {
       });
       return response.data.data;
     },
+    refetchInterval: 10000, // Atualizar a cada 10 segundos (menos frequente que cozinha)
+    refetchIntervalInBackground: true,
+    staleTime: 2000,
   });
 };
 
@@ -232,8 +243,8 @@ export const useUpdateTabStatus = () => {
 export const usePayTab = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, payment_method }: { id: string; payment_method: string }) => {
-      const response = await apiClient.post<{ data: Tab }>(`/tabs/${id}/pay`, { payment_method });
+    mutationFn: async ({ id, payment_methods }: { id: string; payment_methods: string[] | Array<{method: string, amount: number}> }) => {
+      const response = await apiClient.post<{ data: Tab }>(`/tabs/${id}/pay`, { payment_methods });
       return response.data.data;
     },
     onSuccess: () => {
@@ -256,13 +267,47 @@ export const useDeleteTab = () => {
   });
 };
 
-// ===== CLIENTS =====
-export const useClients = () => {
+// ===== KITCHEN ORDERS =====
+export const useKitchenOrders = () => {
   return useQuery({
-    queryKey: ["clients"],
+    queryKey: ["kitchen-orders"],
     queryFn: async () => {
-      const response = await apiClient.get<{ data: Client[] }>("/clients");
+      const response = await apiClient.get<{ data: any[] }>("/kitchen");
       return response.data.data;
+    },
+    refetchInterval: 5000, // Atualizar a cada 5 segundos
+    refetchIntervalInBackground: true, // Continuar atualizando mesmo quando aba não está ativa
+    staleTime: 1000, // Considerar dados frescos por 1 segundo
+  });
+};
+
+export const useMarkKitchenOrderReady = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiClient.post<{ data: any }>(`/kitchen/${id}/ready`);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      // Invalidar e refetch imediatamente
+      queryClient.invalidateQueries({ queryKey: ["kitchen-orders"] });
+      // Também fazer refetch forçado
+      queryClient.refetchQueries({ queryKey: ["kitchen-orders"] });
+    },
+  });
+};
+
+export const useDeleteKitchenOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await apiClient.delete(`/kitchen/${id}/delete`);
+    },
+    onSuccess: () => {
+      // Invalidar e refetch imediatamente
+      queryClient.invalidateQueries({ queryKey: ["kitchen-orders"] });
+      // Também fazer refetch forçado
+      queryClient.refetchQueries({ queryKey: ["kitchen-orders"] });
     },
   });
 };

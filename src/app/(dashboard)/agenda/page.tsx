@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAppointments, useDeleteAppointment } from '@/hooks/useApi';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import AppointmentModal from '@/components/agenda/AppointmentModal';
 import AppointmentCard from '@/components/agenda/AppointmentCard';
 import { Plus, AlertCircle, Trash2, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -26,6 +27,9 @@ export default function AgendaPage() {
   const weekStartDate = new Date(parseInt(weekStartDateStr.split('-')[0]), parseInt(weekStartDateStr.split('-')[1]) - 1, parseInt(weekStartDateStr.split('-')[2]));
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [showPasswordModal, setShowPasswordModal] = useState(true);
 
   const { data: appointments, isLoading, error } = useAppointments(selectedDateStr);
   const { data: allAppointments, isLoading: isLoadingAll } = useAppointments();
@@ -50,10 +54,45 @@ export default function AgendaPage() {
     setWeekStartDateStr(`${year}-${month}-${day}`);
   };
 
+  const handlePasswordSubmit = () => {
+    if (password === 'studio123') {
+      setIsAuthenticated(true);
+      setShowPasswordModal(false);
+    } else {
+      alert('Senha incorreta');
+    }
+  };
+
   const handleEdit = (id: string) => {
     setEditingId(id);
     setShowModal(true);
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#0a0a0a]">
+        <Card className="p-6 border-[#2a2a2a] bg-[#151515] w-full max-w-md">
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-white text-center">Acesso à Agenda</h2>
+            <p className="text-[#a0a0a0] text-center">Digite a senha para acessar a agenda</p>
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Senha"
+              className="bg-[#0a0a0a] border-[#2a2a2a] text-white"
+            />
+            <Button
+              onClick={handlePasswordSubmit}
+              className="w-full bg-[#00d4ff] hover:bg-[#00d4ff]/80 text-black"
+            >
+              Entrar
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja deletar este agendamento?')) {
@@ -75,7 +114,7 @@ export default function AgendaPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

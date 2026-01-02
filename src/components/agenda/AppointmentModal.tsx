@@ -65,7 +65,10 @@ export default function AppointmentModal({
   const updateAppointment = useUpdateAppointment();
 
   useEffect(() => {
+    console.log('useEffect triggered - editingId:', editingId, 'existingAppointment:', !!existingAppointment, 'isOpen:', isOpen);
+
     if (editingId && existingAppointment) {
+      console.log('Carregando dados para edição:', existingAppointment);
       setForm({
         client_name: existingAppointment.client_name,
         client_phone: existingAppointment.client_phone,
@@ -79,6 +82,7 @@ export default function AppointmentModal({
         notes: existingAppointment.notes || '',
       });
     } else {
+      console.log('Resetando form para criação');
       setForm({
         client_name: '',
         client_phone: '',
@@ -98,7 +102,10 @@ export default function AppointmentModal({
     e.preventDefault();
 
     try {
+      console.log('Iniciando submit do appointment, editingId:', editingId);
+
       if (editingId) {
+        console.log('Atualizando appointment existente:', editingId, form);
         await updateAppointment.mutateAsync({
           id: editingId,
           client_name: form.client_name,
@@ -112,7 +119,9 @@ export default function AppointmentModal({
           status: form.status as any,
           notes: form.notes,
         });
+        console.log('Appointment atualizado com sucesso');
       } else {
+        console.log('Criando novo appointment:', form);
         await createAppointment.mutateAsync({
           client_name: form.client_name,
           client_phone: form.client_phone,
@@ -125,6 +134,7 @@ export default function AppointmentModal({
           status: form.status as any,
           notes: form.notes,
         });
+        console.log('Appointment criado com sucesso');
       }
       onClose();
     } catch (error) {
@@ -136,7 +146,7 @@ export default function AppointmentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#151515] border-[#2a2a2a]">
+      <DialogContent className="bg-[#151515] border-[#2a2a2a] w-[95vw] max-w-2xl mx-4">
         <DialogHeader>
           <DialogTitle className="text-white">
             {editingId ? 'Editar Agendamento' : 'Novo Agendamento'}

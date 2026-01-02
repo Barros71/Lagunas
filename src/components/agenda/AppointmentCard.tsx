@@ -40,8 +40,8 @@ export default function AppointmentCard({
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="font-semibold text-white text-lg">{appointment.client_name}</p>
-            <p className="text-sm text-[#a0a0a0]">{appointment.tattoo_description}</p>
+            <p className="font-semibold text-white text-lg break-words">{appointment.client_name}</p>
+            <p className="text-sm text-[#a0a0a0] break-words">{appointment.tattoo_description}</p>
           </div>
           <Badge className={`${STATUS_COLORS[appointment.status]} border text-xs`}>
             {STATUS_LABELS[appointment.status]}

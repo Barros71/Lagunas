@@ -41,30 +41,60 @@ export async function PUT(request, { params }) {
    try {
       const resolvedParams = params && typeof params.then === 'function' ? await params : params;
       const id = (resolvedParams && resolvedParams.id) || new URL(request.url).pathname.split('/').pop();
-    const body = await request.json();
-    const { date, time, ...rest } = body;
 
-    const appointment = await prisma.appointment.findUnique({ where: { id } });
+      console.log('PUT /api/appointments/[id] chamado com ID:', id);
+
+    const body = await request.json();
+    console.log('Dados recebidos para atualização:', body);
+
+    const { date, time, client_name, client_phone, ...rest } = body;
+
+    const appointment = await prisma.appointment.findUnique({ 
+      where: { id },
+      include: { client: true }
+    });
     if (!appointment) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 });
 
     let extras = {};
     try { extras = appointment.note ? JSON.parse(appointment.note) : {}; } catch { extras = {}; }
-    const newExtras = { ...extras, ...rest };
+    
+    // Remover client_name e client_phone dos extras se temos um cliente associado
+    const { client_name: _, client_phone: __, ...restWithoutClientData } = rest;
+    const newExtras = { ...extras, ...restWithoutClientData, ...(time !== undefined && { time }) };
 
-    let newDate = appointment.date;
-    if (date) {
-      const t = time || (extras.time || appointment.date.toISOString().split('T')[1].slice(0,5));
-      newDate = new Date(date + 'T' + t + ':00.000Z');
+    // Atualizar cliente se os dados foram fornecidos
+    if (appointment.client && (client_name !== undefined || client_phone !== undefined)) {
+      console.log('Atualizando cliente associado:', appointment.client.id);
+      await prisma.client.update({
+        where: { id: appointment.client.id },
+        data: {
+          ...(client_name !== undefined && { name: client_name }),
+          ...(client_phone !== undefined && { phone: client_phone }),
+        },
+      });
+      console.log('Cliente atualizado com sucesso');
     }
 
+    let newDate = appointment.date;
+    if (date || time) {
+      const currentDateStr = date || appointment.date.toISOString().split('T')[0];
+      const t = time || (extras.time || appointment.date.toISOString().split('T')[1].slice(0,5));
+      newDate = new Date(currentDateStr + 'T' + t + ':00.000Z');
+    }
+
+    // Se não há cliente associado, manter client_name e client_phone no note
+    const finalExtras = appointment.client ? newExtras : { ...newExtras, ...(client_name !== undefined && { client_name }), ...(client_phone !== undefined && { client_phone }) };
+    
     const updated = await prisma.appointment.update({
       where: { id },
-      data: { date: newDate, note: JSON.stringify(newExtras) },
+      data: { date: newDate, note: Object.keys(finalExtras).length > 0 ? JSON.stringify(finalExtras) : null },
     });
+
+    console.log('Appointment atualizado no banco:', updated.id, 'com dados:', { date: newDate, note: Object.keys(finalExtras).length > 0 ? JSON.stringify(finalExtras) : null });
 
     return NextResponse.json({ success: true, data: { id: updated.id } });
   } catch (err) {
-    console.error(err);
+    console.error('Erro na atualização do appointment:', err);
     return NextResponse.json({ success: false, error: 'Internal error' }, { status: 500 });
   }
 }
