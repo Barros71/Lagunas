@@ -34,7 +34,7 @@ export async function POST(request, { params }) {
       await prisma.kitchenOrder.create({
         data: {
           tabId: id,
-          itemName: prod.name,
+          itemName: quantity > 1 ? `${prod.name} - X${quantity}` : prod.name,
           clientName: clientName,
         },
       });
