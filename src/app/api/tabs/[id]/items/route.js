@@ -8,7 +8,7 @@ export async function POST(request, { params }) {
     if (!admin) return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 });
   try {
     const resolvedParams = params && typeof params.then === 'function' ? await params : params;
-    const id = (resolvedParams && resolvedParams.id) || new URL(request.url).pathname.split('/').pop(); // tab id
+    const id = resolvedParams?.id || new URL(request.url).pathname.split('/')[3]; // /api/tabs/[id]/items
     const body = await request.json();
     const { product_id, name, unit_price, quantity = 1 } = body;
 
@@ -69,7 +69,7 @@ export async function GET(request, { params }) {
     if (!user) return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
   try {
     const resolvedParams = params && typeof params.then === 'function' ? await params : params;
-    const id = (resolvedParams && resolvedParams.id) || new URL(request.url).pathname.split('/').pop();
+    const id = resolvedParams?.id || new URL(request.url).pathname.split('/')[3];
     if (!id) return NextResponse.json({ success: false, error: 'id required' }, { status: 400 });
     const items = await prisma.tabItem.findMany({ where: { tabId: id } });
     return NextResponse.json({ success: true, data: items });
