@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { MENU_CATEGORIES, MENU_CATEGORY_LABELS } from '@/constants';
 
 interface MenuItemModalProps {
@@ -35,6 +35,8 @@ interface FormData {
   promo_price: number | null;
   is_promo: boolean;
   available: boolean;
+  hasOptions: boolean;
+  options: string[];
 }
 
 export default function MenuItemModal({
@@ -49,10 +51,24 @@ export default function MenuItemModal({
     promo_price: null,
     is_promo: false,
     available: true,
+    hasOptions: false,
+    options: [],
   });
+  const [newOption, setNewOption] = useState('');
 
   const createMenuItem = useCreateMenuItem();
   const updateMenuItem = useUpdateMenuItem();
+
+  const addOption = () => {
+    if (newOption.trim() && !form.options.includes(newOption.trim())) {
+      setForm({ ...form, options: [...form.options, newOption.trim()] });
+      setNewOption('');
+    }
+  };
+
+  const removeOption = (option: string) => {
+    setForm({ ...form, options: form.options.filter(o => o !== option) });
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -67,6 +83,8 @@ export default function MenuItemModal({
         promo_price: editingItem.promo_price != null ? Number(editingItem.promo_price) : prev.promo_price,
         is_promo: editingItem.is_promo ?? prev.is_promo,
         available: editingItem.available ?? prev.available,
+        hasOptions: editingItem.hasOptions ?? prev.hasOptions,
+        options: editingItem.options?.map((opt: any) => opt.name) ?? prev.options,
       }));
     } else {
       setForm({
@@ -76,6 +94,8 @@ export default function MenuItemModal({
         promo_price: null,
         is_promo: false,
         available: true,
+        hasOptions: false,
+        options: [],
       });
     }
   }, [editingItem, isOpen]);
@@ -196,9 +216,64 @@ export default function MenuItemModal({
                 className="h-4 w-4"
               />
             </div>
+            <div className="flex items-center justify-between">
+              <Label className="text-white">Item com Múltiplas Opções</Label>
+              <input
+                type="checkbox"
+                checked={form.hasOptions}
+                onChange={(e) => setForm({ ...form, hasOptions: e.target.checked })}
+                className="h-4 w-4"
+              />
+            </div>
           </div>
 
-          {/* Actions */}
+          {/* Options Section */}
+          {form.hasOptions && (
+            <div className="space-y-3 pt-4 border-t border-[#2a2a2a]">
+              <Label className="text-white">Opções/Sabores</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={newOption}
+                  onChange={(e) => setNewOption(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addOption();
+                    }
+                  }}
+                  placeholder="Ex: Morango, Uva, Maracujá..."
+                  className="bg-[#0a0a0a] border-[#2a2a2a] text-white flex-1"
+                />
+                <Button
+                  type="button"
+                  onClick={addOption}
+                  className="bg-[#ffd700] hover:bg-[#ffd700]/80 text-black"
+                >
+                  Adicionar
+                </Button>
+              </div>
+              
+              {form.options.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {form.options.map((option) => (
+                    <div
+                      key={option}
+                      className="flex items-center gap-2 bg-[#2a2a2a] px-3 py-1 rounded-full"
+                    >
+                      <span className="text-white text-sm">{option}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeOption(option)}
+                        className="text-[#ff6b6b] hover:text-[#ff5252] font-bold"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           <div className="flex gap-3 pt-4">
             <Button
               type="button"

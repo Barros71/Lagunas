@@ -4,7 +4,7 @@ import { MenuItem, MenuCategory } from '@/types/api';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit2 } from 'lucide-react';
+import { Trash2, Edit2, Layers } from 'lucide-react';
 import { formatCurrency } from '@/lib/helpers';
 import { MENU_CATEGORY_LABELS, MENU_CATEGORY_COLORS } from '@/constants';
 
@@ -29,7 +29,15 @@ export default function MenuItemCard({
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
-            <p className="font-semibold text-white text-lg break-words">{item.name}</p>
+            <div className="flex items-center gap-2">
+              <p className="font-semibold text-white text-lg word-break">{item.name}</p>
+              {item.hasOptions && (
+                <Badge className="bg-purple-500/20 text-purple-400 border-purple-500 text-xs flex items-center gap-1">
+                  <Layers className="h-3 w-3" />
+                  Opções
+                </Badge>
+              )}
+            </div>
             <Badge className={`${categoryColor} border text-xs mt-1`}>
               {MENU_CATEGORY_LABELS[item.category]}
             </Badge>
@@ -54,6 +62,20 @@ export default function MenuItemCard({
             <p className="text-white font-bold text-lg">{formatCurrency(item.price)}</p>
           )}
         </div>
+
+        {/* Options List */}
+        {item.hasOptions && item.options && item.options.length > 0 && (
+          <div className="bg-[#0a0a0a] rounded p-2 text-sm text-[#a0a0a0]">
+            <p className="text-xs font-semibold text-[#ffd700] mb-1">Opções disponíveis:</p>
+            <div className="flex flex-wrap gap-1">
+              {item.options.map((opt) => (
+                <Badge key={opt.id} className="bg-purple-500/20 text-purple-300 border-0 text-xs">
+                  {opt.name}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Availability removed from card to simplify UI */}
 

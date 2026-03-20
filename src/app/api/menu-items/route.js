@@ -12,7 +12,11 @@ export async function GET(request) {
     const category = searchParams.get('category');
     
     const query = category && category !== 'todos' ? { category } : {};
-    const products = await prisma.product.findMany({ where: query, orderBy: { createdAt: 'desc' } });
+    const products = await prisma.product.findMany({ 
+      where: query, 
+      include: { options: true },
+      orderBy: { createdAt: 'desc' } 
+    });
     
     console.log(`Encontrados ${products.length} produtos`);
     console.log('Categorias encontradas:', [...new Set(products.map(p => p.category))]);
@@ -24,6 +28,8 @@ export async function GET(request) {
       price: p.price, 
       promo_price: p.promo_price,
       is_promo: p.is_promo,
+      hasOptions: p.hasOptions,
+      options: p.options || [],
       createdAt: p.createdAt 
     }));
     return NextResponse.json({ success: true, data: mapped });
@@ -38,11 +44,22 @@ export async function POST(request) {
   if (!admin) return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 });
   try {
     const body = await request.json();
-    const { name, category = 'comida', price, promo_price, is_promo = false } = body;
+    const { name, category = 'comida', price, promo_price, is_promo = false, hasOptions = false, options = [] } = body;
     if (!name || typeof price !== 'number') return NextResponse.json({ success: false, error: 'name and price required' }, { status: 400 });
     
     const p = await prisma.product.create({ 
-      data: { name, category, price, promo_price: promo_price || null, is_promo } 
+      data: { 
+        name, 
+        category, 
+        price, 
+        promo_price: promo_price || null, 
+        is_promo,
+        hasOptions,
+        options: hasOptions ? {
+          create: options.map(opt => ({ name: opt }))
+        } : undefined
+      },
+      include: { options: true }
     });
     
     return NextResponse.json({ success: true, data: p }, { status: 201 });

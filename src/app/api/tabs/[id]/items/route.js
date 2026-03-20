@@ -10,17 +10,21 @@ export async function POST(request, { params }) {
     const resolvedParams = params && typeof params.then === 'function' ? await params : params;
     const id = resolvedParams?.id || new URL(request.url).pathname.split('/')[3]; // /api/tabs/[id]/items
     const body = await request.json();
-    const { product_id, name, unit_price, quantity = 1 } = body;
+    const { product_id, name, unit_price, quantity = 1, option_name } = body;
 
     // if product_id provided, try to fetch product name/price
     let prod = null;
     if (product_id) prod = await prisma.product.findUnique({ where: { id: product_id } });
 
-    await prisma.tabItem.create({
+    const itemName = prod 
+      ? (option_name ? `${prod.name} - ${option_name}` : prod.name)
+      : (name || 'Item');
+
+    const tabItem = await prisma.tabItem.create({
       data: {
         tabId: id,
         productId: product_id || null,
-        name: prod ? prod.name : (name || 'Item'),
+        name: itemName,
         price: prod ? (prod.is_promo && prod.promo_price ? prod.promo_price : prod.price) : (unit_price || 0),
         quantity: quantity,
       },
@@ -34,7 +38,8 @@ export async function POST(request, { params }) {
       await prisma.kitchenOrder.create({
         data: {
           tabId: id,
-          itemName: quantity > 1 ? `${prod.name} - X${quantity}` : prod.name,
+          itemName: itemName,
+          details: option_name ? `${quantity}x ${option_name}` : (quantity > 1 ? `X${quantity}` : null),
           clientName: clientName,
         },
       });

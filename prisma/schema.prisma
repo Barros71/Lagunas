@@ -44,6 +44,7 @@ model TabItem {
 
   tab      Tab      @relation(fields: [tabId], references: [id], onDelete: Cascade)
   product  Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  options  TabItemOption[]
 }
 
 model Product {
@@ -53,9 +54,32 @@ model Product {
   price     Float
   promo_price Float?
   is_promo  Boolean  @default(false)
+  hasOptions Boolean @default(false)
   createdAt DateTime @default(now())
 
   tabItems  TabItem[]
+  options   ProductOption[]
+}
+
+model ProductOption {
+  id        String  @id @default(cuid())
+  productId String
+  name      String  // e.g., "morango", "uva"
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tabItemOptions TabItemOption[]
+}
+
+model TabItemOption {
+  id        String  @id @default(cuid())
+  tabItemId String
+  optionId  String
+  quantity  Int     @default(1)
+  createdAt DateTime @default(now())
+
+  tabItem TabItem @relation(fields: [tabItemId], references: [id], onDelete: Cascade)
+  option  ProductOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
 }
 
 model Payment {
@@ -82,6 +106,7 @@ model KitchenOrder {
   id        String   @id @default(cuid())
   tabId     String
   itemName  String
+  details   String?  // e.g., "2 maracujá, 1 melancia"
   clientName String
   status    KitchenOrderStatus @default(PENDING)
   createdAt DateTime @default(now())

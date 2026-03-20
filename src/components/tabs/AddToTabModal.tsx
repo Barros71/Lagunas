@@ -66,9 +66,7 @@ export default function AddToTabModal({ isOpen, onClose, product }: Props) {
                   tabsQuery.data.map((t: any) => (
                     <SelectItem key={t.id} value={t.id}>{`${t.client_name || 'Cliente'} - ${t.id.slice(0,6)}`}</SelectItem>
                   ))
-                ) : (
-                  <SelectItem value="">Nenhuma comanda aberta</SelectItem>
-                )}
+                ) : null}
                 <SelectItem value="__new__">Criar nova comanda</SelectItem>
               </SelectContent>
             </Select>

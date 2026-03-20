@@ -11,6 +11,8 @@ import { useMenuItems, useAddTabItem } from '@/hooks/useApi';
 import { formatCurrency } from '@/lib/helpers';
 import { MENU_CATEGORIES, MENU_CATEGORY_LABELS, MENU_CATEGORY_COLORS } from '@/constants';
 import { Badge } from '@/components/ui/badge';
+import ProductOptionsModal from './ProductOptionsModal';
+import AddToTabModal from './AddToTabModal';
 
 interface Props {
   isOpen: boolean;
@@ -27,12 +29,24 @@ export default function AddMenuToTabModal({ isOpen, onClose, tabId }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
+  const [showOptionsModal, setShowOptionsModal] = useState(false);
+  const [showAddToTabModal, setShowAddToTabModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
   const filteredItems = (allMenuItems || []).filter(item => {
     const matchesCategory = selectedCategory === 'todos' || item.category === selectedCategory;
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  const handleAddProduct = (product: any) => {
+    setSelectedProduct(product);
+    if (product.hasOptions) {
+      setShowOptionsModal(true);
+    } else {
+      setShowAddToTabModal(true);
+    }
+  };
 
   const handleAdd = async (product: any) => {
     const qty = quantities[product.id] || 1;
@@ -140,26 +154,43 @@ export default function AddMenuToTabModal({ isOpen, onClose, tabId }: Props) {
 
                       {/* Quantidade e Botão */}
                       <div className="flex items-center gap-2 pt-2">
-                        <Input
-                          type="number"
-                          min={1}
-                          value={quantities[p.id] || ''}
-                          onChange={(e) => setQuantities((s) => ({ ...s, [p.id]: e.target.value ? Number(e.target.value) : 0 }))}
-                          placeholder="1"
-                          className="w-16 bg-[#0a0a0a] border-[#2a2a2a] text-white h-8 text-center"
-                        />
-                        <Button
-                          onClick={() => handleAdd(p)}
-                          disabled={loadingMap[p.id]}
-                          className="flex-1 bg-[#ff6b35] hover:bg-[#ff6b35]/80 text-white h-8"
-                          size="sm"
-                        >
-                          {loadingMap[p.id] ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            'Adicionar'
-                          )}
-                        </Button>
+                        {!p.hasOptions ? (
+                          <>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={quantities[p.id] || ''}
+                              onChange={(e) => setQuantities((s) => ({ ...s, [p.id]: e.target.value ? Number(e.target.value) : 0 }))}
+                              placeholder="1"
+                              className="w-16 bg-[#0a0a0a] border-[#2a2a2a] text-white h-8 text-center"
+                            />
+                            <Button
+                              onClick={() => handleAdd(p)}
+                              disabled={loadingMap[p.id]}
+                              className="flex-1 bg-[#ff6b35] hover:bg-[#ff6b35]/80 text-white h-8"
+                              size="sm"
+                            >
+                              {loadingMap[p.id] ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                'Adicionar'
+                              )}
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            onClick={() => handleAddProduct(p)}
+                            disabled={loadingMap[p.id]}
+                            className="flex-1 bg-[#ff6b35] hover:bg-[#ff6b35]/80 text-white h-8"
+                            size="sm"
+                          >
+                            {loadingMap[p.id] ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              'Selecionar Opções'
+                            )}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </Card>
@@ -176,6 +207,28 @@ export default function AddMenuToTabModal({ isOpen, onClose, tabId }: Props) {
             Fechar
           </Button>
         </div>
+
+        {/* Modals */}
+        {selectedProduct && (
+          <>
+            <ProductOptionsModal
+              isOpen={showOptionsModal}
+              onClose={() => {
+                setShowOptionsModal(false);
+                setSelectedProduct(null);
+              }}
+              product={selectedProduct}
+            />
+            <AddToTabModal
+              isOpen={showAddToTabModal}
+              onClose={() => {
+                setShowAddToTabModal(false);
+                setSelectedProduct(null);
+              }}
+              product={selectedProduct}
+            />
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

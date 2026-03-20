@@ -84,7 +84,10 @@ export default function CozinhaPage() {
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="font-semibold text-white text-lg break-words">{order.itemName}</p>
+                        <p className="font-semibold text-white text-lg break-words">
+                          {order.itemName}
+                          {order.details && <span className="text-[#ffd700]"> - {order.details}</span>}
+                        </p>
                         <p className="text-[#a0a0a0] break-words">Cliente: {order.clientName}</p>
                         <p className="text-sm text-[#a0a0a0]">
                           {new Date(order.createdAt).toLocaleString()}
@@ -123,7 +126,10 @@ export default function CozinhaPage() {
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="font-semibold text-white text-lg break-words">{order.itemName}</p>
+                        <p className="font-semibold text-white text-lg break-words">
+                          {order.itemName}
+                          {order.details && <span className="text-[#ffd700]"> - {order.details}</span>}
+                        </p>
                         <p className="text-[#a0a0a0] break-words">Cliente: {order.clientName}</p>
                         <p className="text-sm text-[#a0a0a0]">
                           {new Date(order.createdAt).toLocaleString()}

@@ -10,7 +10,10 @@ export async function GET(request, { params }) {
     const resolvedParams = params && typeof params.then === 'function' ? await params : params;
     const id = (resolvedParams && resolvedParams.id) || new URL(request.url).pathname.split('/').pop();
     if (!id) return NextResponse.json({ success: false, error: 'id required' }, { status: 400 });
-    const p = await prisma.product.findUnique({ where: { id } });
+    const p = await prisma.product.findUnique({ 
+      where: { id },
+      include: { options: true }
+    });
     if (!p) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 });
     return NextResponse.json({ success: true, data: p });
   } catch (err) {
@@ -27,14 +30,33 @@ export async function PUT(request, { params }) {
     const id = (resolvedParams && resolvedParams.id) || new URL(request.url).pathname.split('/').pop();
     if (!id) return NextResponse.json({ success: false, error: 'id required' }, { status: 400 });
     const body = await request.json();
-    const { name, category, price, promo_price, is_promo } = body;
+    const { name, category, price, promo_price, is_promo, hasOptions, options } = body;
     const data = {};
     if (name !== undefined) data.name = name;
     if (category !== undefined) data.category = category;
     if (price !== undefined) data.price = price;
     if (promo_price !== undefined) data.promo_price = promo_price;
     if (is_promo !== undefined) data.is_promo = is_promo;
-    const updated = await prisma.product.update({ where: { id }, data });
+    if (hasOptions !== undefined) data.hasOptions = hasOptions;
+    
+    // Handle options update
+    if (options !== undefined) {
+      // Delete existing options
+      await prisma.productOption.deleteMany({ where: { productId: id } });
+      
+      // Create new options if hasOptions is true
+      if (hasOptions && Array.isArray(options) && options.length > 0) {
+        data.options = {
+          create: options.map(opt => ({ name: typeof opt === 'string' ? opt : opt.name }))
+        };
+      }
+    }
+    
+    const updated = await prisma.product.update({ 
+      where: { id }, 
+      data,
+      include: { options: true }
+    });
     return NextResponse.json({ success: true, data: updated });
   } catch (err) {
     console.error(err);

@@ -80,8 +80,17 @@ export interface MenuItem {
   promo_price?: number;
   is_promo: boolean;
   available: boolean;
+  hasOptions: boolean;
+  options?: ProductOption[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ProductOption {
+  id: string;
+  productId: string;
+  name: string;
+  createdAt: string;
 }
 
 export interface CreateMenuItemRequest {
@@ -91,6 +100,8 @@ export interface CreateMenuItemRequest {
   promo_price?: number;
   is_promo: boolean;
   available: boolean;
+  hasOptions: boolean;
+  options?: string[];
 }
 
 export interface UpdateMenuItemRequest extends Partial<CreateMenuItemRequest> {
@@ -145,6 +156,7 @@ export interface AddTabItemRequest {
   product_id: string;
   quantity: number;
   unit_price: number;
+  option_name?: string; // For products with options
 }
 
 export interface RemoveTabItemRequest {

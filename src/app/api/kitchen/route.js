@@ -21,6 +21,7 @@ export async function GET(request) {
       id: o.id,
       tabId: o.tabId,
       itemName: o.itemName,
+      details: o.details,
       clientName: o.clientName,
       status: o.status,
       createdAt: o.createdAt,
